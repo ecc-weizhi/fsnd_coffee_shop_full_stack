@@ -58,7 +58,6 @@ def get_token_auth_header():
 
 def check_permissions(permission, payload):
     """
-    @TODO implement check_permissions(permission, payload) method
     it should raise an AuthError if permissions are not included in the payload
         !!NOTE check your RBAC settings in Auth0
     it should raise an AuthError if the requested permission string is not in the payload permissions array
@@ -67,7 +66,25 @@ def check_permissions(permission, payload):
     :param payload: decoded jwt payload
     :return: true if no error is raised
     """
-    raise Exception('Not Implemented')
+    if not payload:
+        raise AuthError({
+            "code": "token_malformed",
+            "description": "Payload is missing",
+        }, 401)
+    elif "permissions" not in payload:
+        raise AuthError({
+            "code": "token_malformed",
+            "description": "Permissions information missing from payload",
+        }, 401)
+
+    token_permissions = payload["permissions"]
+    if permission not in token_permissions:
+        raise AuthError({
+            "code": "unauthorized",
+            "description": f"Token lack permission: {permission}",
+        }, 401)
+
+    return True
 
 
 def verify_decode_jwt(token):
