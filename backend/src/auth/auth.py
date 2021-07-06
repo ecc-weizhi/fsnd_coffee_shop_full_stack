@@ -4,9 +4,9 @@ from functools import wraps
 from jose import jwt
 from urllib.request import urlopen
 
-AUTH0_DOMAIN = 'udacity-fsnd.auth0.com'
+AUTH0_DOMAIN = 'eccweizhi-fsnd.us.auth0.com'
 ALGORITHMS = ['RS256']
-API_AUDIENCE = 'dev'
+API_AUDIENCE = 'myFoobar'
 
 
 class AuthError(Exception):
@@ -22,14 +22,38 @@ class AuthError(Exception):
 
 def get_token_auth_header():
     """
-    @TODO implement get_token_auth_header() method
     it should attempt to get the header from the request
         it should raise an AuthError if no header is present
     it should attempt to split bearer and the token
         it should raise an AuthError if the header is malformed
     :return: token part of header
     """
-    raise Exception('Not Implemented')
+    if not request.headers:
+        raise AuthError({
+            "code": "missing_header",
+            "description": "No header is present",
+        }, 400)
+    elif "Authorization" not in request.headers:
+        raise AuthError({
+            "code": "invalid_header",
+            "description": "Authorization information not provided",
+        }, 401)
+
+    auth_header = request.headers["Authorization"]
+    authorization_parts = auth_header.split(" ")
+
+    if len(authorization_parts) != 2:
+        raise AuthError({
+            "code": "invalid_header",
+            "description": "Authorization malformed",
+        }, 401)
+    elif authorization_parts[0].lower() != "bearer":
+        raise AuthError({
+            "code": "invalid_header",
+            "description": "Authorization malformed",
+        }, 401)
+
+    return authorization_parts[1]
 
 
 def check_permissions(permission, payload):
