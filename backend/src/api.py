@@ -8,7 +8,7 @@ from flask_cors import CORS
 from sqlalchemy.exc import SQLAlchemyError
 
 from .utils.utils import check_fields_exist
-from .client_error_exceptions.client_error_exceptions import BadRequest, UnprocessableEntity
+from .client_error_exceptions.client_error_exceptions import BadRequest, UnprocessableEntity, NotFound
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
 
@@ -99,9 +99,9 @@ def post_drinks(jwt_payload):
 
 
 @app.route("/drinks/<int:id>", methods=["PATCH"])
-def patch_drinks(id):
+@requires_auth("patch:drinks")
+def patch_drinks(jwt_payload, id):
     """
-    @TODO implement endpoint
     PATCH /drinks/<id>
         it should respond with a 404 error if <id> is not found
         it should update the corresponding row for <id>
@@ -111,7 +111,33 @@ def patch_drinks(id):
     :return: status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the updated drink
     or appropriate status code indicating reason for failure
     """
-    pass
+    drink = Drink.query.filter_by(id=id).first()
+    if not drink:
+        raise NotFound("drink", id)
+
+    data_string = request.data
+    try:
+        request_json = json.loads(data_string)
+    except JSONDecodeError:
+        raise BadRequest()
+    missing_field = check_fields_exist(request_json, ["title", "recipe"])
+    if missing_field:
+        raise UnprocessableEntity.missing_fields(missing_field)
+
+    try:
+        drink.title =request_json["title"]
+        drink.recipe = json.dumps(request_json["recipe"])
+    except:
+        raise UnprocessableEntity()
+
+    try:
+        drink.update()
+        return jsonify({
+            "success": True,
+            "drinks": [drink.long()],
+        })
+    except SQLAlchemyError:
+        abort(500)
 
 
 @app.route("/drinks/<int:id>", methods=["DELETE"])
