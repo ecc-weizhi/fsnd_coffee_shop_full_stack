@@ -141,9 +141,9 @@ def patch_drinks(jwt_payload, id):
 
 
 @app.route("/drinks/<int:id>", methods=["DELETE"])
-def delete_drinks(id):
+@requires_auth("delete:drinks")
+def delete_drinks(jwt_payload, id):
     """
-    @TODO implement endpoint
     DELETE /drinks/<id>
         it should respond with a 404 error if <id> is not found
         it should delete the corresponding row for <id>
@@ -152,7 +152,18 @@ def delete_drinks(id):
     :return: status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
     or appropriate status code indicating reason for failure
     """
-    pass
+    drink = Drink.query.filter_by(id=id).first()
+    if not drink:
+        raise NotFound("drink", id)
+
+    try:
+        drink.delete()
+        return jsonify({
+            "success": True,
+            "delete": id,
+        })
+    except SQLAlchemyError:
+        abort(500)
 
 
 @app.errorhandler(422)
