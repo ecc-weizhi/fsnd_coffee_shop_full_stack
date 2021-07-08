@@ -3,9 +3,10 @@ from flask import jsonify
 
 class ErrorHandler:
     @staticmethod
-    def handle_client_error(client_error_exception):
+    def handle_error(client_error_exception):
         return jsonify({
             "success": False,
+            "error": client_error_exception.get_status_code(),
             "message": client_error_exception.get_message(),
         }), client_error_exception.get_status_code()
 

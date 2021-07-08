@@ -7,14 +7,17 @@ import json
 from flask_cors import CORS
 from sqlalchemy.exc import SQLAlchemyError
 
+from .error_handler.error_handler import ErrorHandler
 from .utils.utils import check_fields_exist
-from .client_error_exceptions.client_error_exceptions import BadRequest, UnprocessableEntity, NotFound
+from .client_error_exceptions.client_error_exceptions import BadRequest, UnprocessableEntity, NotFound, \
+    ClientErrorException
 from .database.models import db_drop_and_create_all, setup_db, Drink
 from .auth.auth import AuthError, requires_auth
 
 app = Flask(__name__)
 setup_db(app)
 CORS(app)
+error_handler = ErrorHandler()
 
 '''
 @TODO uncomment the following line to initialize the datbase
@@ -125,7 +128,7 @@ def patch_drinks(jwt_payload, id):
         raise UnprocessableEntity.missing_fields(missing_field)
 
     try:
-        drink.title =request_json["title"]
+        drink.title = request_json["title"]
         drink.recipe = json.dumps(request_json["recipe"])
     except:
         raise UnprocessableEntity()
@@ -166,34 +169,11 @@ def delete_drinks(jwt_payload, id):
         abort(500)
 
 
-@app.errorhandler(422)
-def unprocessable(error):
-    """Example error handling for unprocessable entity"""
-    return jsonify({
-        "success": False,
-        "error": 422,
-        "message": "unprocessable"
-    }), 422
+@app.errorhandler(ClientErrorException)
+def client_error(error):
+    return error_handler.handle_error(error)
 
 
-'''
-@TODO implement error handlers using the @app.errorhandler(error) decorator
-    each error handler should return (with approprate messages):
-             jsonify({
-                    "success": False,
-                    "error": 404,
-                    "message": "resource not found"
-                    }), 404
-
-'''
-
-
-@app.errorhandler(404)
-def not_found(error):
-    """@TODO implement error handler for 404"""
-    pass
-
-
+@app.errorhandler(AuthError)
 def auth_error(error):
-    """@TODO implement error handler for AuthError"""
-    pass
+    return error_handler.handle_error(error)

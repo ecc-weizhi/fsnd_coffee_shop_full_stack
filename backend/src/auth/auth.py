@@ -22,6 +22,12 @@ class AuthError(Exception):
         }
         self.status_code = status_code
 
+    def get_message(self):
+        return self.error["description"]
+
+    def get_status_code(self):
+        return self.status_code
+
 
 def get_token_auth_header():
     """
