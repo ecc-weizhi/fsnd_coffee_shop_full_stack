@@ -130,8 +130,9 @@ def patch_drinks(jwt_payload, id):
 
     try:
         drink.title = request_json["title"]
-        drink.recipe = json.dumps(request_json["recipe"])
-    except:
+        if "recipe" in request_json:
+            drink.recipe = json.dumps(request_json["recipe"])
+    except Exception as e:
         raise UnprocessableEntity()
 
     try:
