@@ -83,7 +83,7 @@ def post_drinks(jwt_payload):
     except JSONDecodeError:
         raise BadRequest()
 
-    missing_field = check_fields_exist(request_json, ["title", "recipe"])
+    missing_field = check_fields_exist(request_json, ["title"])
     if missing_field:
         raise UnprocessableEntity.missing_fields(missing_field)
 
