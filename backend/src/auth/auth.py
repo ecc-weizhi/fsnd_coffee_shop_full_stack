@@ -70,7 +70,7 @@ def check_permissions(permission, payload):
 
     token_permissions = payload["permissions"]
     if permission not in token_permissions:
-        raise AuthError("unauthorized", f"Token lack permission: {permission}", 401)
+        raise AuthError("unauthorized", f"Token lack permission: {permission}", 403)
 
     return True
 
@@ -99,7 +99,9 @@ def verify_decode_jwt(token):
     if 'kid' not in unverified_header:
         raise AuthError("invalid_header", "Authorization malformed.", 401)
 
+    print(f"unverifided: {unverified_header['kid']}")
     for key in jwks['keys']:
+        print(f"keykid: {key['kid']}")
         if key['kid'] == unverified_header['kid']:
             rsa_key = {
                 'kty': key['kty'],
