@@ -99,9 +99,7 @@ def verify_decode_jwt(token):
     if 'kid' not in unverified_header:
         raise AuthError("invalid_header", "Authorization malformed.", 401)
 
-    print(f"unverifided: {unverified_header['kid']}")
     for key in jwks['keys']:
-        print(f"keykid: {key['kid']}")
         if key['kid'] == unverified_header['kid']:
             rsa_key = {
                 'kty': key['kty'],
