@@ -48,7 +48,8 @@ def get_drinks():
 
 
 @app.route("/drinks-detail", methods=["GET"])
-def get_drinks_detail():
+@requires_auth("get:drinks-detail")
+def get_drinks_detail(jwt_payload):
     """
     GET /drinks-detail
         it should require the 'get:drinks-detail' permission
